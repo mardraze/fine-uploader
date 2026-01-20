@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html id="html" lang="pl" >
+<head>
+    <title>Select file from google drive on android - File Upload example</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"  />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+    <div>Select file from google drive on android - File Upload example</div>
+<button id="fine-uploader-cv">Select File</button>
+<div id="files"></div>
+<script src="https://cdn.jsdelivr.net/npm/fine-uploader@5.16.2/fine-uploader/fine-uploader.min.js"></script>
+<script>
+
+    var fineuploaderbtn = document.querySelector('#fine-uploader-cv');
+
+    var uploader = new qq.FineUploaderBasic({
+        debug: false,
+        button: fineuploaderbtn,
+        request: {
+            endpoint: 'upload.php',
+        },
+        callbacks: {
+            onSubmit: function(id, name) {
+                const file = this.getFile(id);
+                const uploader = this;
+                if(file.lastModified > Date.now()) { //hack - files created manually
+                    return true;
+                }
+
+                try{
+                    file.arrayBuffer().then(function(arrayBuffer) {
+                        if (arrayBuffer.byteLength === 0) {
+                            console.error('File is empty, skipping');
+                            return;
+                        }
+                        
+                        const processedFile = new File([arrayBuffer], file.name, {
+                            type: file.type,
+                            lastModified: Date.now() + (24 * 60 * 60 * 1000) // hack - set date to future to prevent infinite loop for files added manually
+                        });
+                        
+                        uploader.addFiles(processedFile);
+                    }).catch(function(error) {
+                        console.error('Error reading file arrayBuffer():', error);
+                    });
+                    return false;
+                }catch(e){
+                    console.error('Error reading file:', e);
+                }
+                return true;
+            },
+            onComplete: function (id, fileName, responseJSON) {
+                if (responseJSON.success) {
+                    const remoteFile = responseJSON.files.qqfile;
+                    document.getElementById('files').innerHTML = `Remote files: <div>${remoteFile.tmp_name} - ${remoteFile.size} bytes</div>`;
+                } else {
+                    document.getElementById('files').innerHTML = 'Upload failed';
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
+
