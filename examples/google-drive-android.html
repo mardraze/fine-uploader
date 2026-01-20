@@ -15,13 +15,14 @@
     var fineuploaderbtn = document.querySelector('#fine-uploader-cv');
 
     var uploader = new qq.FineUploaderBasic({
-        debug: false,
         button: fineuploaderbtn,
+        multiple: true,
         request: {
             endpoint: 'upload.php',
         },
         callbacks: {
             onSubmit: function(id, name) {
+                document.getElementById('files').innerHTML = '';
                 const file = this.getFile(id);
                 const uploader = this;
                 if(file.lastModified > Date.now()) { //hack - files created manually
@@ -53,9 +54,9 @@
             onComplete: function (id, fileName, responseJSON) {
                 if (responseJSON.success) {
                     const remoteFile = responseJSON.files.qqfile;
-                    document.getElementById('files').innerHTML = `Remote files: <div>${remoteFile.tmp_name} - ${remoteFile.size} bytes</div>`;
+                    document.getElementById('files').innerHTML += `<div>File: ${fileName} - Remote file: ${remoteFile.tmp_name} - ${remoteFile.size} bytes</div>`;
                 } else {
-                    document.getElementById('files').innerHTML = 'Upload failed';
+                    document.getElementById('files').innerHTML += `<div>File: ${fileName} - Upload failed</div>`;
                 }
             }
         }
